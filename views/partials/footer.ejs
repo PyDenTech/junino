@@ -1,0 +1,31 @@
+<footer class="bg-light text-center text-muted py-3 mt-4">
+    <div class="container">
+        <small>Secretaria Municipal de Educação - Canaã dos Carajás</small>
+    </div>
+</footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
+<% if (typeof fullCalendar !=='undefined' && fullCalendar) { %>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales-all.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var calendarEl = document.getElementById('calendar');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'pt-br',
+                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek' },
+                dateClick: function (info) {
+                    // ...
+                },
+                eventClick: function (info) {
+                    // ...
+                },
+                events: <%= eventos %>
+        });
+        calendar.render();
+      });
+    </script>
+    <% } %>
+        </body>
+
+        </html>

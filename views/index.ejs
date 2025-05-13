@@ -1,99 +1,31 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Agendamento Festas Juninas - SEMED Canaã</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet" />
-    <link rel="stylesheet" href="/css/styles.css" />
-</head>
-
-<body>
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark navbar-bg fixed-top">
-        <div class="container">
-            <a class="navbar-brand" href="/">
-                <img src="/images/logo.png" alt="Logo SEMED" height="30" class="d-inline-block align-text-top" />
-                SEMED Canaã
-            </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="/">Início</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/agendar">Agendar</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/login">Admin</a>
-                    </li>
-                </ul>
+<%- include('partials/header') %>
+    <div class="container my-4">
+        <% if (success) { %>
+            <div class="alert alert-success text-center" role="alert">
+                Agendamento registrado com sucesso!
             </div>
-        </div>
-    </nav>
-
-    <!-- Main Content -->
-    <main>
-        <div class="container py-5">
-            <div class="row">
-                <div class="col-lg-8 offset-lg-2">
-                    <div class="card shadow-sm">
-                        <div class="card-body">
-                            <h1 class="card-title">Bem-vindo ao Sistema de Agendamento de Festas Juninas</h1>
-                            <p class="card-text">
-                                Utilize este sistema para agendar as apresentações das escolas nas festividades juninas
-                                organizadas pela SEMED Canaã dos Carajás.
-                            </p>
-                            <p class="card-text">
-                                Navegue pelo menu acima para realizar um novo agendamento ou acessar o painel
-                                administrativo.
-                            </p>
-                        </div>
-                    </div>
+            <% } %>
+                <div class="row">
+                    <% if (escolas && escolas.length) { %>
+                        <% escolas.forEach(escola=> { %>
+                            <div class="col-md-4 col-lg-3 mb-4">
+                                <div class="card h-100 text-center">
+                                    <img src="/img/<%= escola.slug %>.png" class="card-img-top p-3"
+                                        alt="<%= escola.nome %>"
+                                        onerror="this.onerror=null; this.src='/img/default_school.png';" />
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <%= escola.nome %>
+                                        </h5>
+                                    </div>
+                                    <a href="/agendar/<%= escola.id %>" class="stretched-link"
+                                        title="Agendar visita"></a>
+                                </div>
+                            </div>
+                            <% }) %>
+                                <% } else { %>
+                                    <p>Não há escolas cadastradas.</p>
+                                    <% } %>
                 </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-dark text-light py-4 mt-5">
-        <div class="container">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <img src="/images/logo.png" alt="Logo SEMED Canaã dos Carajás" class="mb-2"
-                        style="max-height: 50px;" />
-                    <p class="mb-1">
-                        Horário de funcionamento: 08:00 às 12:00 (atendimento ao público) e 14:00 às 18:00 (expediente
-                        interno).
-                    </p>
-                    <p class="mb-0">© 2025 SEMED Canaã dos Carajás - Transformando a educação para um futuro melhor.</p>
-                </div>
-                <div class="col-md-6 text-md-end">
-                    <p class="mb-1">
-                        Contato: <a href="mailto:assec@semedcanaadoscarajas.pa.gov.br"
-                            class="text-light">assec@semedcanaadoscarajas.pa.gov.br</a>
-                    </p>
-                    <p class="mb-0">
-                        Siga-nos:
-                        <a href="https://facebook.com/semed" target="_blank" class="text-light me-2"><i
-                                class="bi bi-facebook"></i></a>
-                        <a href="https://instagram.com/semed" target="_blank" class="text-light me-2"><i
-                                class="bi bi-instagram"></i></a>
-                        <a href="https://youtube.com/semed" target="_blank" class="text-light"><i
-                                class="bi bi-youtube"></i></a>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-
-</html>
+    </div>
+    <%- include('partials/footer') %>
