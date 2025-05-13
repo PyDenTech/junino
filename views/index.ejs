@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Página Inicial - SEMED Canaã</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/css/styles.css" rel="stylesheet" />
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+
+    <!-- Cabeçalho -->
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="/">
+                <img src="/images/logo.png" alt="Logo" width="40" height="40" class="me-2" />
+                <span class="fw-bold">Secretaria de Educação</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSite"
+                aria-controls="navbarSite" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSite">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="/">Início</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/login">Login</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Conteúdo Principal -->
+    <main class="flex-grow-1">
+        <div class="container my-5">
+            <h1 class="mb-4">Escolas Municipais</h1>
+            <% if (escolas && escolas.length> 0) { %>
+                <div class="row">
+                    <% escolas.forEach(function(escola){ %>
+                        <div class="col-md-4 col-sm-6 mb-4">
+                            <a href="/agendar/<%= escola.id %>" class="text-decoration-none text-reset d-block">
+                                <div class="card h-100 shadow-sm">
+                                    <!-- Se houver imagem da escola, descomente a linha abaixo -->
+                                    <!-- <img src="<%= escola.imagem %>" class="card-img-top" alt="<%= escola.nome %>" /> -->
+                                    <div class="card-body">
+                                        <h5 class="card-title">
+                                            <%= escola.nome %>
+                                        </h5>
+                                        <% if (escola.endereco) { %>
+                                            <p class="card-text">
+                                                <%= escola.endereco %>
+                                            </p>
+                                            <% } %>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <% }); %>
+                </div>
+                <% } else { %>
+                    <p>Nenhuma escola encontrada.</p>
+                    <% } %>
+        </div>
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="bg-dark text-light text-center py-4 mt-auto">
+        <div class="container">
+            <small>
+                Secretaria Municipal de Educação de Canaã dos Carajás<br />
+                Horário de funcionamento: 08h às 12h (atendimento ao público) e 14h às 18h (expediente interno).<br />
+                Contato: assec@semedcanaadoscarajas.pa.gov.br<br />
+                &copy; 2025 SEMED Canaã dos Carajás - Transformando a educação para um futuro melhor.
+            </small>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.6/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
