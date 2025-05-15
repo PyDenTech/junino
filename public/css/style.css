@@ -7,6 +7,21 @@
   margin: 0;
   padding: 0;
 }
+/* no topo do style.css */
+html {
+  height: 100%;
+  background: linear-gradient(
+    to bottom,
+    #ecff00,   /* amarelo forte */
+    #87ceeb    /* azul céu */
+  );
+}
+
+body {
+  min-height: 100%;
+  margin: 0;          /* tira qualquer espaçamento padrão */
+  background: none;   /* remove o background que estava aqui */
+}
 
 body {
   font-family: 'Patrick Hand', cursive;
@@ -285,3 +300,4 @@ header h1 {
 body {
   font-size: 1.1em;      /* torna todo o texto um pouco maior */  
 }
+

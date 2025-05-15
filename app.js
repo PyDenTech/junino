@@ -53,6 +53,15 @@ db.serialize(() => {
       data_festa  TEXT
     );
   `);
+    db.run(`
+  CREATE TABLE IF NOT EXISTS users (
+    id       INTEGER PRIMARY KEY AUTOINCREMENT,
+    name     TEXT    NOT NULL,
+    email    TEXT    NOT NULL UNIQUE,
+    password TEXT    NOT NULL
+  );
+`);
+
 });
 
 // rota principal: lista de cards
@@ -60,6 +69,48 @@ app.get('/', (req, res) => {
     const success = req.query.success === '1';          // captura ?success=1
     res.render('index', { schools, success });
 });
+// --- PÁGINA DE LOGIN/CADASTRO ---
+app.get('/login', (req, res) => {
+    // ?err=login | ?err=register | ?success=register
+    const err = req.query.err;
+    const success = req.query.success === 'register';
+    res.render('login', { err, success });
+});
+
+app.post('/login', (req, res) => {
+    const { email, password } = req.body;
+    db.get(
+        `SELECT * FROM users WHERE email = ? AND password = ?`,
+        [email, password],
+        (err, user) => {
+            if (err || !user) {
+                return res.redirect('/login?err=login');
+            }
+            // aqui você pode criar sessão, token, etc.
+            return res.redirect('/?success=1');
+        }
+    );
+});
+
+app.post('/register', (req, res) => {
+    const { name, email, password, confirm } = req.body;
+    if (password !== confirm) {
+        return res.redirect('/login?err=register');
+    }
+    const stmt = db.prepare(`
+    INSERT INTO users (name, email, password)
+    VALUES (?, ?, ?)
+  `);
+    stmt.run(name, email, password, function (e) {
+        if (e) {
+            return res.redirect('/login?err=register');
+        }
+        res.redirect('/login?success=register');
+    });
+    stmt.finalize();
+});
+
+
 // FORMULÁRIO DE AGENDAMENTO / REAGENDAMENTO
 app.get('/agendamento/:id', (req, res) => {
     const escolaId = req.params.id;
@@ -146,9 +197,9 @@ app.post('/agendamento/:id', (req, res) => {
     );
 });
 
-const PORT = 4000;
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`> Servidor rodando em http://0.0.0.0:${PORT}`);
+const PORT = 3000;
+app.listen(PORT, () => {
+    console.log(`> Servidor rodando em http://localhost:${PORT}`);
 });
 
 
