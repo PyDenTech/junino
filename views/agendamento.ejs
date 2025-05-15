@@ -94,59 +94,69 @@
 </head>
 
 <body>
-    <!-- bandeirinhas -->
-    <div class="bandeirinhas-top">
-        <% const pngs=['flag1.png','flag2.png']; const svgs=['flag3.svg','flag4.svg','flag5.svg']; for (let i=0; i < 49;
-            i++) { if (i % 2===0) { const png=pngs[(i/2) % pngs.length]; %>
-            <img src="/img/<%= png %>" class="flag png-flag" alt="Bandeirinha">
-            <% } else { const svg=svgs[Math.floor(i/2) % svgs.length]; const cls=svg.replace('.svg',''); %>
-                <span class="flag svg-flag <%= cls %>"></span>
-                <% } } %>
+  <!-- bandeirinhas -->
+  <div class="bandeirinhas-top">
+    <% const pngs=['flag1.png','flag2.png']; const svgs=['flag3.svg','flag4.svg','flag5.svg'];
+       for (let i=0; i<49; i++) {
+         if (i%2===0) {
+           const png=pngs[(i/2)%pngs.length]; %>
+      <img src="/img/<%= png %>" class="flag png-flag" alt="Bandeirinha">
+    <% } else {
+           const svg=svgs[Math.floor(i/2)%svgs.length];
+           const cls=svg.replace('.svg',''); %>
+      <span class="flag svg-flag <%= cls %>"></span>
+    <% } } %>
+  </div>
+
+  <!-- cabeçalho com fogueira -->
+  <header>
+    <h1>
+      Agendar Festa Junina: <em><br><%= school.name %></em>
+    </h1>
+  </header>
+
+  <!-- modal de agendamento existente -->
+  <% if (booking && !warning) { %>
+    <div id="modal-bg" class="modal-bg">
+      <div class="modal">
+        <p>
+          Você já tem um agendamento para esta escola em
+          <strong><%= booking.data_festa %></strong>.
+        </p>
+        <button id="reagendar-btn" class="reagendar">Reagendar</button>
+        <button id="cancelar-btn"  class="cancelar">Cancelar</button>
+      </div>
     </div>
+  <% } %>
 
-    <!-- cabeçalho com fogueira -->
-    <header>
-        <span class="fire"><img src="https://cdn.pixabay.com/photo/2012/04/12/19/11/fire-30231_1280.png" alt="fogueira"
-                style="width: 65px;"></span>
-        <h1>Agendar Festa Junina: <em> <br>
-                <%= school.name %>
-            </em></h1>
-    </header>
+  <!-- notificações de sucesso/erro/aviso -->
+  <div id="alert" class="notification hidden"></div>
 
-    <!-- modal de agendamento existente -->
-    <% if (booking) { %>
-        <div id="modal-bg" class="modal-bg">
-            <div class="modal">
-                <p>Você já tem um agendamento para esta escola em <strong>
-                        <%= booking.data_festa %>
-                    </strong>.</p>
-                <button id="reagendar-btn" class="reagendar">Reagendar</button>
-                <button id="cancelar-btn" class="cancelar">Cancelar</button>
-            </div>
-        </div>
-        <% } %>
+  <!-- formulário -->
+  <form id="form-agenda" action="/agendamento/<%= school.id %>" method="POST"
+        class="form-agenda">
+    <label for="nome">Nome completo:</label>
+    <input type="text" id="nome" name="nome" required>
 
-            <!-- notificações de sucesso/erro/aviso -->
-            <div id="alert" class="notification hidden"></div>
+    <label for="cargo">Cargo na escola:</label>
+    <input type="text" id="cargo" name="cargo" required>
 
-            <!-- formulário -->
-            <form id="form-agenda" action="/agendamento/<%= school.id %>" method="POST" class="form-agenda">
-                <label for="nome">Nome completo:</label>
-                <input type="text" id="nome" name="nome" required>
+    <label for="data">Data da festa:</label>
+    <input type="date" id="data" name="data" required min="<%= minDate %>">
 
-                <label for="cargo">Cargo na escola:</label>
-                <input type="text" id="cargo" name="cargo" required>
+    <button type="submit">Enviar</button>
+      <!-- botão voltar -->
+  <a href="/" class="back-btn">← Voltar para Início</a>
+  </form>
 
-                <label for="data">Data da festa:</label>
-                <input type="date" id="data" name="data" required min="<%= minDate %>">
-
-                <button type="submit">Enviar</button>
-            </form>
 
             <!-- scripts: modal, notificações e checagem de data -->
             <script>
                 (function () {
-                    const params = new URLSearchParams(window.location.search);
+                    // 0) Datas indisponíveis injetadas do servidor
+                    const unavailable = <%- JSON.stringify(unavailableDates || []) %>;
+
+                    const params   = new URLSearchParams(window.location.search);
                     const alertDiv = document.getElementById('alert');
 
                     // 1) Notificações via query string
@@ -170,7 +180,7 @@
                     const modalBg = document.getElementById('modal-bg');
                     if (modalBg) {
                         const btnReagendar = document.getElementById('reagendar-btn');
-                        const btnCancelar = document.getElementById('cancelar-btn');
+                        const btnCancelar  = document.getElementById('cancelar-btn');
                         btnReagendar.addEventListener('click', () => {
                             modalBg.style.display = 'none';
                         });
@@ -179,16 +189,9 @@
                         });
                     }
 
-                    // 3) Checagem de datas “cheias”
-                    const dateInput = document.getElementById('data');
-                    dateInput.addEventListener('change', () => {
-                        if (unavailable.includes(dateInput.value)) {
-                            alert('⚠️ Data não disponível. Escolha outra.');
-                            dateInput.value = '';
-                        }
-                    });
                 })();
             </script>
+
 </body>
 
 </html>

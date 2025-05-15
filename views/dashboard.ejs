@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Dashboard</title>
+
+    <!-- seu CSS junino -->
+    <link rel="stylesheet" href="/css/style.css">
+
+    <!-- FullCalendar -->
+    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.css" rel="stylesheet" />
+
+    <style>
+        /* layout */
+        .dashboard {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 200px;
+            background: #fff8e1;
+            border-right: 3px dashed #d84315;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .sidebar h2 {
+            font-family: 'Amatic SC', cursive;
+            font-size: 1.8em;
+            margin-bottom: 1em;
+            color: #e64a19;
+            text-align: center;
+        }
+
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .sidebar li {
+            margin-bottom: 1em;
+        }
+
+        .sidebar a {
+            text-decoration: none;
+            font-family: 'Roboto', sans-serif;
+            font-size: 1.1em;
+            color: #4e342e;
+            display: block;
+            padding: 6px 10px;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .sidebar a.active,
+        .sidebar a:hover {
+            background: #d84315;
+            color: #fff;
+        }
+
+        .content {
+            flex: 1;
+            padding: 20px;
+        }
+
+        .content h2 {
+            font-family: 'Amatic SC', cursive;
+            font-size: 2.2em;
+            margin-bottom: 0.5em;
+            color: #d84315;
+        }
+
+        /* tabela de agendamentos */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-family: 'Roboto', sans-serif;
+            margin-top: 1em;
+        }
+
+        table th,
+        table td {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            text-align: left;
+        }
+
+        table th {
+            background: #ffeb3b;
+        }
+
+        table tbody tr:nth-child(even) {
+            background: rgba(255, 235, 59, 0.2);
+        }
+
+        /* calendário */
+        #calendar {
+            max-width: 900px;
+            margin: 1em auto;
+            background: #fff;
+            border: 3px dashed #d84315;
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        /* modal de detalhes */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.hidden {
+            display: none;
+        }
+
+        .modal-content {
+            background: #fff8e1;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 400px;
+            box-sizing: border-box;
+            border: 3px dashed #d84315;
+        }
+
+        .modal-content h3 {
+            margin-top: 0;
+            font-family: 'Amatic SC', cursive;
+            font-size: 1.8em;
+            color: #e64a19;
+        }
+
+        .modal-content ul {
+            list-style: none;
+            padding: 0;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        .modal-content li {
+            margin-bottom: 8px;
+        }
+
+        .modal-content .close {
+            float: right;
+            font-size: 1.4em;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="dashboard">
+        <!-- SIDEBAR -->
+        <aside class="sidebar">
+            <h2>Dashboard</h2>
+            <ul>
+                <li><a href="#section-agendamentos" id="tab-agendamentos" class="active">Agendamentos</a></li>
+                <li><a href="#section-calendar" id="tab-calendar">Calendário</a></li>
+            </ul>
+        </aside>
+
+        <!-- CONTEÚDO -->
+        <main class="content">
+            <!-- AGENDAMENTOS -->
+            <section id="section-agendamentos">
+                <h2>Agendamentos</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Escola</th>
+                            <th>Responsável</th>
+                            <th>Cargo</th>
+                            <th>Data</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% agendamentos.forEach(a=> { %>
+                            <tr>
+                                <td>
+                                    <%= a.id %>
+                                </td>
+                                <td>
+                                    <%= a.schoolName %>
+                                </td>
+                                <td>
+                                    <%= a.nome %>
+                                </td>
+                                <td>
+                                    <%= a.cargo %>
+                                </td>
+                                <td>
+                                    <%= a.data_festa %>
+                                </td>
+                            </tr>
+                            <% }) %>
+                    </tbody>
+                </table>
+            </section>
+
+            <!-- CALENDÁRIO -->
+            <section id="section-calendar" style="display:none;">
+                <h2>Calendário</h2>
+                <div id="calendar"></div>
+            </section>
+        </main>
+    </div>
+
+    <!-- MODAL DE DETALHES -->
+    <div id="event-modal" class="modal hidden">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3 id="modal-date"></h3>
+            <ul id="modal-list"></ul>
+        </div>
+    </div>
+
+    <!-- FullCalendar e scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/main.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.11.3/locales/pt-br.js"></script>
+    <script>
+        // switch de abas
+        document.getElementById('tab-agendamentos').onclick = e => {
+            e.preventDefault();
+            document.getElementById('section-agendamentos').style.display = '';
+            document.getElementById('section-calendar').style.display = 'none';
+            e.target.classList.add('active');
+            document.getElementById('tab-calendar').classList.remove('active');
+        };
+        document.getElementById('tab-calendar').onclick = e => {
+            e.preventDefault();
+            document.getElementById('section-agendamentos').style.display = 'none';
+            document.getElementById('section-calendar').style.display = '';
+            e.target.classList.add('active');
+            document.getElementById('tab-agendamentos').classList.remove('active');
+            calendar.render();
+        };
+
+        // dados vindos do servidor
+        const events = <%- JSON.stringify(events) %>;
+
+        // inicia calendário
+        const calendarEl = document.getElementById('calendar');
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            locale: 'pt-br',
+            height: 'auto',
+            events,
+            dateClick: info => {
+                const date = info.dateStr;
+                // filtra agendamentos
+                const dayEvents = events.filter(ev => ev.date === date);
+                const modal = document.getElementById('event-modal');
+                const list = document.getElementById('modal-list');
+                const title = document.getElementById('modal-date');
+
+                title.textContent = `Agendamentos em ${date}`;
+                list.innerHTML = '';
+                dayEvents.forEach(ev => {
+                    const li = document.createElement('li');
+                    li.textContent = ev.title;
+                    list.appendChild(li);
+                });
+                modal.classList.remove('hidden');
+            }
+        });
+
+        // fecha modal
+        document.querySelector('#event-modal .close').onclick = () => {
+            document.getElementById('event-modal').classList.add('hidden');
+        };
+    </script>
+    <script>
+        // funções de troca de aba
+        function showAgend() {
+            document.getElementById('section-agendamentos').style.display = '';
+            document.getElementById('section-calendar').style.display = 'none';
+            document.getElementById('tab-agendamentos').classList.add('active');
+            document.getElementById('tab-calendar').classList.remove('active');
+        }
+        function showCal() {
+            document.getElementById('section-agendamentos').style.display = 'none';
+            document.getElementById('section-calendar').style.display = '';
+            document.getElementById('tab-calendar').classList.add('active');
+            document.getElementById('tab-agendamentos').classList.remove('active');
+            calendar.render();
+        }
+
+        // intercepta clicks para usar as funções e também ajustar a rota
+        document.getElementById('tab-agendamentos').addEventListener('click', e => {
+            e.preventDefault();
+            history.replaceState(null, '', '#section-agendamentos');
+            showAgend();
+        });
+        document.getElementById('tab-calendar').addEventListener('click', e => {
+            e.preventDefault();
+            history.replaceState(null, '', '#section-calendar');
+            showCal();
+        });
+
+        // ao carregar a página, verifica o hash e abre a aba correta
+        window.addEventListener('DOMContentLoaded', () => {
+            if (location.hash === '#section-calendar') {
+                showCal();
+                document.getElementById('section-calendar')
+                    .scrollIntoView({ behavior: 'smooth' });
+            } else {
+                showAgend();
+            }
+        });
+    </script>
+
+</body>
+
+</html>

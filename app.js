@@ -76,6 +76,36 @@ app.get('/login', (req, res) => {
     const success = req.query.success === 'register';
     res.render('login', { err, success });
 });
+// Rota do Dashboard
+// Rota do Dashboard correta: busca os agendamentos e passa as variáveis
+app.get('/dashboard', (req, res) => {
+    db.all(`SELECT * FROM agendamentos`, [], (err, rows) => {
+        if (err) {
+            console.error(err);
+            return res.status(500).send('Erro ao carregar dashboard');
+        }
+
+        const agendamentos = rows.map(r => {
+            const school = schools.find(s => s.id === r.escola_id);
+            return {
+                id: r.id,
+                escola_id: r.escola_id,
+                nome: r.nome,
+                cargo: r.cargo,
+                data_festa: r.data_festa,
+                schoolName: school ? school.name : '—'
+            };
+        });
+
+        const events = agendamentos.map(a => ({
+            title: a.schoolName,
+            date: a.data_festa
+        }));
+
+        res.render('dashboard', { agendamentos, events });
+    });
+});
+
 
 app.post('/login', (req, res) => {
     const { email, password } = req.body;
@@ -86,68 +116,92 @@ app.post('/login', (req, res) => {
             if (err || !user) {
                 return res.redirect('/login?err=login');
             }
-            // aqui você pode criar sessão, token, etc.
-            return res.redirect('/?success=1');
+            return res.redirect('/dashboard');
         }
     );
 });
 
+
 app.post('/register', (req, res) => {
     const { name, email, password, confirm } = req.body;
+
+    // checa se as senhas batem
     if (password !== confirm) {
         return res.redirect('/login?err=register');
     }
+
     const stmt = db.prepare(`
     INSERT INTO users (name, email, password)
     VALUES (?, ?, ?)
   `);
-    stmt.run(name, email, password, function (e) {
-        if (e) {
+
+    stmt.run(name, email, password, function (err) {
+        stmt.finalize();
+
+        if (err) {
             return res.redirect('/login?err=register');
         }
-        res.redirect('/login?success=register');
+
+        // redireciona para a tela de login sem query string
+        res.redirect('/login');
     });
-    stmt.finalize();
 });
+
 
 
 // FORMULÁRIO DE AGENDAMENTO / REAGENDAMENTO
 app.get('/agendamento/:id', (req, res) => {
-    const escolaId = req.params.id;
-    const school = schools.find(s => s.id === escolaId);
-    if (!school) return res.status(404).send('Escola não encontrada');
+  const escolaId = req.params.id;
+  const school   = schools.find(s => s.id === escolaId);
+  if (!school) {
+    return res.status(404).send('Escola não encontrada');
+  }
 
-    const minDate = new Date().toISOString().split('T')[0];
+  // data mínima para o <input type="date">
+  const minDate = new Date().toISOString().split('T')[0];
+  // captura os flags de aviso/erro da query string
+  const warning = req.query.warning;
+  const error   = req.query.error;
 
-    // traz o último agendamento (se existir) para exibir no modal
-    db.get(
-        `SELECT * FROM agendamentos WHERE escola_id = ? ORDER BY id DESC LIMIT 1`,
-        [escolaId],
-        (err, booking) => {
-            if (err) return res.status(500).send('Erro ao consultar agendamentos');
+  // traz o último agendamento (se existir) para exibir no modal
+  db.get(
+    `SELECT * FROM agendamentos WHERE escola_id = ? ORDER BY id DESC LIMIT 1`,
+    [escolaId],
+    (err, booking) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send('Erro ao consultar agendamentos');
+      }
 
-            // datas com >=4 agendamentos
-            db.all(
-                `SELECT data_festa
+      // datas com >=4 agendamentos
+      db.all(
+        `SELECT data_festa
          FROM agendamentos
          GROUP BY data_festa
          HAVING COUNT(*) >= 4`,
-                [],
-                (err2, rows) => {
-                    if (err2) return res.status(500).send('Erro ao consultar datas indisponíveis');
-                    const unavailableDates = rows.map(r => r.data_festa);
+        [],
+        (err2, rows) => {
+          if (err2) {
+            console.error(err2);
+            return res.status(500).send('Erro ao consultar datas indisponíveis');
+          }
+          const unavailableDates = rows.map(r => r.data_festa);
 
-                    res.render('agendamento', {
-                        school,
-                        minDate,
-                        booking,
-                        unavailableDates
-                    });
-                }
-            );
+          // renderiza passando tudo ao template
+          res.render('agendamento', {
+            school,
+            minDate,
+            booking,           // objeto ou undefined
+            unavailableDates,  // array de strings YYYY-MM-DD
+            warning,           // mensagem de aviso (ou undefined)
+            error              // flag de erro (ou undefined)
+          });
         }
-    );
+      );
+    }
+  );
 });
+
 
 // INSERE / REAGENDA UM AGENDAMENTO
 app.post('/agendamento/:id', (req, res) => {
@@ -196,6 +250,8 @@ app.post('/agendamento/:id', (req, res) => {
         }
     );
 });
+
+
 
 const PORT = 3000;
 app.listen(PORT, () => {
