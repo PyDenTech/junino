@@ -96,15 +96,19 @@
 <body>
     <!-- bandeirinhas -->
     <div class="bandeirinhas-top">
-        <% for(let i=0; i < 10; i++) { %>
-            <div class="flag"></div>
-            <% } %>
+        <% const pngs=['flag1.png','flag2.png']; const svgs=['flag3.svg','flag4.svg','flag5.svg']; for (let i=0; i < 49;
+            i++) { if (i % 2===0) { const png=pngs[(i/2) % pngs.length]; %>
+            <img src="/img/<%= png %>" class="flag png-flag" alt="Bandeirinha">
+            <% } else { const svg=svgs[Math.floor(i/2) % svgs.length]; const cls=svg.replace('.svg',''); %>
+                <span class="flag svg-flag <%= cls %>"></span>
+                <% } } %>
     </div>
 
     <!-- cabeçalho com fogueira -->
     <header>
-        <span class="fire">🔥</span>
-        <h1>Agendar Festa Junina: <em>
+        <span class="fire"><img src="https://cdn.pixabay.com/photo/2012/04/12/19/11/fire-30231_1280.png" alt="fogueira"
+                style="width: 65px;"></span>
+        <h1>Agendar Festa Junina: <em> <br>
                 <%= school.name %>
             </em></h1>
     </header>

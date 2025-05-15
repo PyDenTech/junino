@@ -1,38 +1,112 @@
 /* 1) Fonte junina */
-@import url('https://fonts.googleapis.com/css2?family=Amatic+SC:wght@400;700&display=swap');
+/* Fonte junina mais legível */
+@import url('https://fonts.googleapis.com/css2?family=Patrick+Hand&display=swap');
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 body {
-  font-family: 'Amatic SC', cursive;
-  background: #abe3ff;
+  font-family: 'Patrick Hand', cursive;
+  /* degradê céu → palha */
+  background: linear-gradient(to bottom, #879eeb, #eeff00);
   color: #4e342e;
   padding: 20px;
+  position: relative;
+  overflow-x: hidden;
 }
 
-/* 2) Bandeirinhas CSS */
+/* 2) Confetes sutis */
+@keyframes confetti-fall {
+  0%   { transform: translateY(-100%); opacity: 1; }
+  100% { transform: translateY(100vh); opacity: 0; }
+}
+.confetti {
+  position: absolute;
+  top: -10px;
+  width: 8px;
+  height: 8px;
+  background-color: rgb(251, 230, 0);
+  border-radius: 50%;
+  animation: confetti-fall 5s linear infinite;
+}
+/* Gere várias instâncias em JS ou duplicando a div .confetti no HTML */
+
+/* 3) Bandeirinhas balançando */
 .bandeirinhas-top {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
-  gap: 5px;
+  gap: 8px;
   margin-bottom: 20px;
 }
-.bandeirinhas-top .flag {
-  width: 0;
-  height: 0;
-  border-left: 10px solid transparent;
-  border-right: 10px solid transparent;
-  border-bottom: 15px solid #f44336;
-  transition: transform 0.2s;
-}
-.bandeirinhas-top .flag:nth-child(even) {
-  border-bottom-color: #ffeb3b;
-}
-.bandeirinhas-top .flag:hover {
-  transform: translateY(-5px) rotate(-10deg);
+
+/* tamanho comum */
+.flag {
+  display: inline-block;
+  width: 30px;
+  height: 33px;
 }
 
-/* 3) Cabeçalho com fogueira animada */
+/* PNGs: só deixamos responsivos */
+.png-flag {
+  object-fit: contain;
+}
+
+/* SVGs coloridos via máscara */
+.svg-flag {
+  /* define a máscara SVG */
+  mask-repeat: no-repeat;
+  mask-position: center;
+  mask-size: contain;
+
+  /* e a mesma para WebKit */
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  -webkit-mask-size: contain;
+}
+
+/* cada classe aponta pro seu SVG + cor de fundo */
+.flag3 {
+  mask-image: url("/img/flag3.svg");
+  -webkit-mask-image: url("/img/flag3.svg");
+  background-color: red;    /* SVG “3” ficará vermelho */
+}
+.flag4 {
+  mask-image: url("/img/flag4.svg");
+  -webkit-mask-image: url("/img/flag4.svg");
+  background-color: blue;   /* SVG “4” ficará azul */
+}
+.flag5 {
+  mask-image: url("/img/flag5.svg");
+  -webkit-mask-image: url("/img/flag5.svg");
+  background-color: yellow; /* SVG “5” ficará amarelo */
+}
+
+/* animação de balanço igual antes */
+@keyframes wave {
+  0%   { transform: rotate(0deg); }
+  33%  { transform: rotate(4deg); }
+  66%  { transform: rotate(-4deg); }
+  100% { transform: rotate(0deg); }
+}
+.flag {
+  transform-origin: top center;
+  animation: wave 1.6s ease-in-out infinite;
+}
+.flag:nth-child(even) {
+  animation-duration: 1.8s;
+  animation-delay: -0.4s;
+}
+.flag:nth-child(3n) {
+  animation-duration: 1.4s;
+  animation-delay: -0.2s;
+}
+
+
+/* 4) Cabeçalho com fogueira animada */
 header {
   text-align: center;
   margin-bottom: 20px;
@@ -47,36 +121,47 @@ header {
   100% { opacity: 0.6; transform: scale(1.2); }
 }
 header h1 {
-  font-size: 2.5em;
+  font-size: 2.8em;
   color: #d84315;
-  text-shadow: 2px 2px #ffeb3b;
+  text-shadow: 2px 2px #ffe600;
 }
 
-/* 4) Grid de cards */
+/* 5) Grid de cards */
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 24px;
 }
 
-/* 5) Cards juninos */
+/* 6) Cards juninos com bandeirinha no topo */
 .card {
   background: #fff8e1;
   border: 3px dashed #d84315;
   border-radius: 8px;
-  padding: 20px;
+  padding: 24px 20px 20px;
   text-decoration: none;
   color: inherit;
   position: relative;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+.card::before {
+  content: '';
+  position: absolute;
+  top: -18px; left: 50%;
+  transform: translateX(-50%);
+  width: 0; height: 0;
+  border-left: 14px solid transparent;
+  border-right: 14px solid transparent;
+  border-bottom: 20px solid #4caf50; /* bandeirinha extra */
+  animation: wave 1.5s ease-in-out infinite;
 }
 .card:hover {
-  transform: translateY(-5px) rotate(-1deg);
-  box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+  transform: translateY(-6px) rotate(-1deg);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.2);
 }
 .card h2 {
-  margin-bottom: 10px;
-  font-size: 1.5em;
+  margin-bottom: 12px;
+  font-size: 1.6em;
   color: #e64a19;
 }
 .card p {
@@ -84,24 +169,35 @@ header h1 {
   color: #5d4037;
 }
 
-/* 6) Formulário junino */
+/* 7) Formulário junino */
 .form-agenda {
   background: #fff8e1;
   border: 3px dashed #d84315;
   border-radius: 8px;
-  padding: 20px;
-  max-width: 400px;
+  padding: 24px;
+  max-width: 420px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 18px;
+  position: relative;
+}
+.form-agenda::before {
+  content: '';
+  position: absolute;
+  top: -18px; right: 20px;
+  width: 0; height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 14px solid #2196f3; /* bandeirinha azul */
+  animation: wave 1.7s ease-in-out infinite;
 }
 .form-agenda label {
   font-weight: bold;
   color: #6d4c41;
 }
 .form-agenda input {
-  padding: 8px;
+  padding: 10px;
   border: 2px solid #d84315;
   border-radius: 4px;
   font-family: inherit;
@@ -110,9 +206,9 @@ header h1 {
   background: #d84315;
   color: #fff;
   border: none;
-  padding: 10px;
+  padding: 12px;
   border-radius: 4px;
-  font-size: 1.2em;
+  font-size: 1.3em;
   cursor: pointer;
   transition: background 0.2s;
 }
@@ -120,12 +216,69 @@ header h1 {
   background: #b71c1c;
 }
 
+/* 8) Notificação de sucesso */
 .notification.success {
   background: #d4edda;
   color: #155724;
   border: 1px solid #c3e6cb;
-  padding: 10px;
+  padding: 12px;
   border-radius: 4px;
   text-align: center;
   margin-bottom: 20px;
+}
+
+
+/* 1) Aumenta o cabeçalho */
+header h1 {
+  font-size: 3.2em;    /* antes 2.8em */
+  margin-bottom: 15px;
+}
+
+/* 2) Notificações maiores */
+.notification {
+  font-size: 1.2em;    /* antes padrão */
+  padding: 15px 20px;  /* aumenta espaço interno */
+}
+
+/* 3) Modal com texto mais legível */
+.modal p {
+  font-size: 1.4em;    /* antes 1.2em */ 
+}
+
+/* 4) Formulário mais largo e fonte maior */
+.form-agenda {
+  max-width: 520px;      /* antes 420px */  
+  padding: 32px;         /* antes 24px */  
+}
+.form-agenda label {
+  font-size: 1.4em;      /* antes tamanho padrão */  
+  margin-bottom: 6px;
+}
+.form-agenda input,
+.form-agenda button {
+  font-size: 1.2em;      /* aumenta legibilidade */  
+}
+.form-agenda input {
+  padding: 12px;         /* antes 10px */  
+}
+.form-agenda button {
+  padding: 14px;         /* antes 12px */  
+}
+
+/* 5) Inputs e botão com altura maior */
+.form-agenda input {
+  height: 2.6em;         /* garante uniformidade */  
+}
+.form-agenda button {
+  height: 2.8em;         /* mais fácil de clicar */  
+}
+
+/* 6) Espaçamento extra entre campos */
+.form-agenda > * {
+  margin-bottom: 18px;   /* antes gap:18px, reforça espaçamento */
+}
+
+/* 7) Ajuste final no corpo para conforto visual */
+body {
+  font-size: 1.1em;      /* torna todo o texto um pouco maior */  
 }
