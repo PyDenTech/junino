@@ -1,254 +1,152 @@
 const express = require('express');
-const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
-const session = require('express-session');
+const sqlite3 = require('sqlite3').verbose();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
-
-// Middlewares
-app.use(express.static(path.join(__dirname, 'public'))); // Servir arquivos estáticos (CSS, imagens)
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
-// Session middleware
-app.use(session({
-    secret: 'festasjuninas-secret',
-    resave: false,
-    saveUninitialized: false
-}));
-app.use((req, res, next) => {
-    res.locals.session = req.session;
-    next();
-});
-
-// Configurar EJS como motor de visualização
 app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
-// Inicialização do banco de dados SQLite
-const db = new sqlite3.Database('database.db');
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.urlencoded({ extended: true }));
+
+// lista de escolas
+const schools = [
+    { id: '1', name: 'NEI Marili Terezinha de Souza' },
+    { id: '2', name: 'EMEB Gercino Correa de Melo Junior', subtitle: 'Unidade voltada para a formação básica de qualidade.' },
+    { id: '3', name: 'EMEB Luís Carlos Prestes', subtitle: 'Promovendo educação com inovação, cuidado e responsabilidade.' },
+    { id: '4', name: 'EMEB Ronilton Aridal da Silva Grilo', subtitle: 'Compromisso com o desenvolvimento educacional.' },
+    { id: '5', name: 'EMEF Alexsandro Nunes de Souza Gomes', subtitle: 'Foco no aprendizado e no desenvolvimento de valores.' },
+    { id: '6', name: 'EMEF Benedita Torres', subtitle: 'Excelência em educação para o futuro.' },
+    { id: '7', name: 'EMEF Carmelo Mendes da Silva', subtitle: 'Educação com dedicação e valores.' },
+    { id: '8', name: 'EMEF Francisca Romana dos Santos', subtitle: 'Preparando cidadãos para o mundo.' },
+    { id: '9', name: 'EMEF João Nelson dos Prazeres Henriques', subtitle: 'Qualidade no ensino com dedicação.' },
+    { id: '10', name: 'EMEF Maria de Lourdes Rocha Rodrigues', subtitle: 'Educação que transforma.' },
+    { id: '11', name: 'EMEF Sebastião Agripino da Silva', subtitle: 'Conectando conhecimento e prática.' },
+    { id: '12', name: 'EMEIF Adelaide Molinari', subtitle: 'Educação de excelência para formar grandes cidadãos.' },
+    { id: '13', name: 'EMEIF Carlos Henrique', subtitle: 'Compromisso com o futuro de nossos jovens.' },
+    { id: '14', name: 'EMEIF Juscelino Kubitschek', subtitle: 'Formando jovens com base no conhecimento.' },
+    { id: '15', name: 'EMEIF Magalhães Barata', subtitle: 'Inspirando mentes criativas e inovadoras.' },
+    { id: '16', name: 'EMEIF Raimundo de Oliveira', subtitle: 'Conectando saberes e transformando vidas.' },
+    { id: '17', name: 'EMEIF Tancredo de Almeida Neves', subtitle: 'Educação comprometida.' },
+    { id: '18', name: 'EMEIF Teotônio Vilela', subtitle: 'Onde o aprendizado se encontra com a dedicação.' },
+    { id: '19', name: 'NEI Alegria do Saber', subtitle: 'Transformando a alegria em aprendizado.' },
+    { id: '20', name: 'NEI Benedito Faustino Malachias', subtitle: 'Crescendo juntos com a educação infantil de qualidade.' },
+    { id: '21', name: 'NEI Edson Pedro da Silva', subtitle: 'Educação que acolhe e transforma.' },
+    { id: '22', name: 'NEI Irani Vieira da Silva', subtitle: 'Contribuindo para um futuro brilhante.' },
+    { id: '23', name: 'NEI Maria dos Milagres Oliveira Viana', subtitle: 'Educação infantil com amor e dedicação.' },
+    { id: '24', name: 'NEI Raimundo Borges de Sousa', subtitle: 'Ensinar e aprender juntos para transformar.' },
+    { id: '25', name: 'NEI Nair Gomes de Souza', subtitle: 'Educando com alegria e dedicação.' },
+    { id: '26', name: 'NEI Zulmiro Frigoto' },
+    { id: '27', name: 'NEI Nilde Maria dos Santos' },
+    { id: '28', name: 'EMEB Professora Fernanda Leite' }
+];
+
+// inicializa banco SQLite
+const db = new sqlite3.Database(path.join(__dirname, 'agendamentos.db'));
 db.serialize(() => {
-    // Criação das tabelas, se não existirem
-    db.run(`CREATE TABLE IF NOT EXISTS escolas (
-        id INTEGER PRIMARY KEY,
-        name TEXT,
-        slug TEXT UNIQUE
-    )`);
-    db.run(`CREATE TABLE IF NOT EXISTS agendamentos (
-        id INTEGER PRIMARY KEY,
-        escola_id INTEGER,
-        solicitante TEXT,
-        email TEXT,
-        data TEXT,
-        horario TEXT,
-        observacoes TEXT
-    )`);
-    db.run(`CREATE TABLE IF NOT EXISTS usuarios (
-        id INTEGER PRIMARY KEY,
-        username TEXT UNIQUE,
-        password TEXT
-    )`);
-    db.run(`CREATE TABLE IF NOT EXISTS logs (
-        id INTEGER PRIMARY KEY,
-        user_id INTEGER,
-        acao TEXT,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-    )`);
-    // Inserção inicial das 28 escolas (caso não existam)
-    db.get("SELECT COUNT(*) as count FROM escolas", (err, row) => {
-        if (err) {
-            console.error("Erro ao verificar escolas:", err);
-        } else if (row.count === 0) {
-            const escolasInicial = [
-                { name: 'Escola Municipal Tancredo Neves', slug: 'escola_municipal_tancredo_neves' },
-                { name: 'Escola Municipal Monteiro Lobato', slug: 'escola_municipal_monteiro_lobato' },
-                { name: 'Escola Municipal Paulo Freire', slug: 'escola_municipal_paulo_freire' },
-                { name: 'Escola Municipal Maria da Glória', slug: 'escola_municipal_maria_da_gloria' },
-                { name: 'Escola Municipal Dom Pedro I', slug: 'escola_municipal_dom_pedro_i' },
-                { name: 'Escola Municipal São José', slug: 'escola_municipal_sao_jose' },
-                { name: 'Escola Municipal Santa Maria', slug: 'escola_municipal_santa_maria' },
-                { name: 'Escola Municipal Novo Horizonte', slug: 'escola_municipal_novo_horizonte' },
-                { name: 'Escola Municipal Canaã dos Carajás', slug: 'escola_municipal_canaa_dos_carajas' },
-                { name: 'Escola Municipal Jardim das Flores', slug: 'escola_municipal_jardim_das_flores' },
-                { name: 'Escola Municipal Vale do Sol', slug: 'escola_municipal_vale_do_sol' },
-                { name: 'Escola Municipal Arco-Íris', slug: 'escola_municipal_arco_iris' },
-                { name: 'Colégio Integração Canaã', slug: 'colegio_integracao_canaa' },
-                { name: 'Colégio Objetivo Canaã', slug: 'colegio_objetivo_canaa' },
-                { name: 'Escola Estadual Ulisses Guimarães', slug: 'escola_estadual_ulisses_guimaraes' },
-                { name: 'Escola Estadual Juscelino Kubitschek', slug: 'escola_estadual_juscelino_kubitschek' },
-                { name: 'Escola Municipal Raio de Luz', slug: 'escola_municipal_raio_de_luz' },
-                { name: 'Escola Municipal Pequeno Príncipe', slug: 'escola_municipal_pequeno_principe' },
-                { name: 'Centro Educacional Caminhos do Saber', slug: 'centro_educacional_caminhos_do_saber' },
-                { name: 'Centro Educacional Monte Sinai', slug: 'centro_educacional_monte_sinai' },
-                { name: 'Escola Técnica de Canaã', slug: 'escola_tecnica_de_canaa' },
-                { name: 'Escola Municipal Vila Planalto', slug: 'escola_municipal_vila_planalto' },
-                { name: 'Escola Municipal São João', slug: 'escola_municipal_sao_joao' },
-                { name: 'Escola Municipal Santo Antônio', slug: 'escola_municipal_santo_antonio' },
-                { name: 'Escola Municipal São Pedro', slug: 'escola_municipal_sao_pedro' },
-                { name: 'Escola Municipal Professor Miguel Arraes', slug: 'escola_municipal_professor_miguel_arraes' },
-                { name: 'Escola Municipal Frei Henrique', slug: 'escola_municipal_frei_henrique' },
-                { name: 'Escola Municipal Chico Mendes', slug: 'escola_municipal_chico_mendes' }
-            ];
-            const insertEscolaStmt = db.prepare("INSERT INTO escolas (name, slug) VALUES (?, ?)");
-            escolasInicial.forEach(escola => {
-                insertEscolaStmt.run(escola.name, escola.slug);
-            });
-            insertEscolaStmt.finalize();
-            console.log("Escolas iniciais inseridas.");
-        }
-    });
-    // Inserção do usuário admin padrão (caso não exista)
-    db.get("SELECT COUNT(*) as count FROM usuarios", (err, row) => {
-        if (err) {
-            console.error("Erro ao verificar usuarios:", err);
-        } else if (row.count === 0) {
-            db.run("INSERT INTO usuarios (username, password) VALUES (?, ?)", ['admin', 'admin'], err2 => {
-                if (err2) {
-                    console.error("Erro ao inserir usuario admin:", err2);
-                } else {
-                    console.log("Usuário admin inserido.");
-                }
-            });
-        }
-    });
+    db.run(`
+    CREATE TABLE IF NOT EXISTS agendamentos (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      escola_id   TEXT,
+      nome        TEXT,
+      cargo       TEXT,
+      data_festa  TEXT
+    );
+  `);
 });
 
-// Middleware de autenticação para rotas administrativas
-function checkAuth(req, res, next) {
-    if (req.session.userId) {
-        return next();
-    }
-    res.redirect('/login');
-}
-
-// ** Rotas **
-
-// Página inicial - lista todas as escolas
+// rota principal: lista de cards
 app.get('/', (req, res) => {
-    db.all("SELECT * FROM escolas", (err, rows) => {
-        if (err) return res.status(500).send("Erro ao carregar escolas");
-        res.render('index', { escolas: rows });
-    });
+    const success = req.query.success === '1';          // captura ?success=1
+    res.render('index', { schools, success });
 });
-
-// Página de agendamento para uma escola específica
-app.get('/agendar/:id', (req, res) => {
+// FORMULÁRIO DE AGENDAMENTO / REAGENDAMENTO
+app.get('/agendamento/:id', (req, res) => {
     const escolaId = req.params.id;
-    db.get("SELECT * FROM escolas WHERE id = ?", [escolaId], (err, escola) => {
-        if (err) return res.status(500).send("Erro ao buscar escola");
-        if (!escola) return res.status(404).send("Escola não encontrada");
-        const success = req.query.success || null;
-        res.render('agendar', { escola: escola, success: success });
-    });
-});
+    const school = schools.find(s => s.id === escolaId);
+    if (!school) return res.status(404).send('Escola não encontrada');
 
-// Processa o formulário de agendamento
-app.post('/agendar', (req, res) => {
-    const { escola_id, solicitante, email, data, horario, observacoes } = req.body;
-    if (!escola_id || !solicitante || !email || !data || !horario) {
-        return res.redirect('/agendar/' + escola_id);
-    }
-    db.run(
-        "INSERT INTO agendamentos (escola_id, solicitante, email, data, horario, observacoes) VALUES (?, ?, ?, ?, ?, ?)",
-        [escola_id, solicitante, email, data, horario, observacoes || ''],
-        function (err) {
-            if (err) return res.status(500).send("Erro ao agendar");
-            // Redireciona de volta com mensagem de sucesso
-            res.redirect('/agendar/' + escola_id + '?success=1');
+    const minDate = new Date().toISOString().split('T')[0];
+
+    // traz o último agendamento (se existir) para exibir no modal
+    db.get(
+        `SELECT * FROM agendamentos WHERE escola_id = ? ORDER BY id DESC LIMIT 1`,
+        [escolaId],
+        (err, booking) => {
+            if (err) return res.status(500).send('Erro ao consultar agendamentos');
+
+            // datas com >=4 agendamentos
+            db.all(
+                `SELECT data_festa
+         FROM agendamentos
+         GROUP BY data_festa
+         HAVING COUNT(*) >= 4`,
+                [],
+                (err2, rows) => {
+                    if (err2) return res.status(500).send('Erro ao consultar datas indisponíveis');
+                    const unavailableDates = rows.map(r => r.data_festa);
+
+                    res.render('agendamento', {
+                        school,
+                        minDate,
+                        booking,
+                        unavailableDates
+                    });
+                }
+            );
         }
     );
 });
 
-// Página de login do administrador
-app.get('/login', (req, res) => {
-    if (req.session.userId) return res.redirect('/admin');
-    res.render('login', { error: null });
-});
+// INSERE / REAGENDA UM AGENDAMENTO
+app.post('/agendamento/:id', (req, res) => {
+    const escolaId = req.params.id;
+    const { nome, cargo, data } = req.body;
 
-// Processa login do administrador
-app.post('/login', (req, res) => {
-    const { username, password } = req.body;
-    db.get("SELECT * FROM usuarios WHERE username = ? AND password = ?", [username, password], (err, user) => {
-        if (err) return res.status(500).send("Erro no login");
-        if (!user) {
-            // Credenciais inválidas
-            return res.render('login', { error: 'Credenciais inválidas' });
-        }
-        req.session.userId = user.id;
-        res.redirect('/admin');
-    });
-});
-
-// Painel administrativo (calendário)
-app.get('/admin', checkAuth, (req, res) => {
-    res.render('admin');
-});
-
-// Endpoint para obter agendamentos em formato JSON (FullCalendar)
-app.get('/admin/events', checkAuth, (req, res) => {
-    const query = `
-        SELECT a.id, a.data, a.horario, a.solicitante, a.email, a.observacoes, e.name as escola_name
-        FROM agendamentos a
-        JOIN escolas e ON a.escola_id = e.id
-    `;
-    db.all(query, [], (err, rows) => {
-        if (err) return res.status(500).json({ error: err.message });
-        const events = rows.map(row => ({
-            id: row.id,
-            title: row.escola_name,
-            start: row.data + 'T' + row.horario,
-            extendedProps: {
-                solicitante: row.solicitante,
-                email: row.email,
-                observacoes: row.observacoes,
-                escola: row.escola_name
+    // 1) valida se a data está cheia
+    db.get(
+        `SELECT COUNT(*) AS count
+     FROM agendamentos
+     WHERE data_festa = ?`,
+        [data],
+        (err, row) => {
+            if (err) {
+                console.error(err);
+                return res.redirect(`/agendamento/${escolaId}?error=1`);
             }
-        }));
-        res.json(events);
-    });
+            if (row.count >= 4) {
+                // permanece na tela de agendamento com aviso
+                return res.redirect(`/agendamento/${escolaId}?warning=Data não disponível`);
+            }
+
+            // 2) exclui agendamento existente para essa escola (reagendamento)
+            db.run(
+                `DELETE FROM agendamentos WHERE escola_id = ?`,
+                [escolaId],
+                deleteErr => {
+                    if (deleteErr) console.error('Erro ao apagar anterior:', deleteErr);
+
+                    // 3) insere o novo agendamento
+                    const stmt = db.prepare(`
+            INSERT INTO agendamentos (escola_id, nome, cargo, data_festa)
+            VALUES (?, ?, ?, ?)
+          `);
+                    stmt.run(escolaId, nome, cargo, data, function (insErr) {
+                        if (insErr) {
+                            console.error(insErr);
+                            return res.redirect(`/agendamento/${escolaId}?error=1`);
+                        }
+                        // sucesso: redireciona à index com ?success=1
+                        res.redirect('/?success=1');
+                    });
+                    stmt.finalize();
+                }
+            );
+        }
+    );
 });
 
-// Atualizar agendamento (arrastar evento no calendário)
-app.post('/admin/events/update', checkAuth, (req, res) => {
-    const { id, date, time } = req.body;
-    if (!id || !date || !time) {
-        return res.status(400).json({ error: 'Dados inválidos' });
-    }
-    db.run("UPDATE agendamentos SET data = ?, horario = ? WHERE id = ?", [date, time, id], function (err) {
-        if (err) return res.status(500).json({ error: err.message });
-        // Log de edição
-        const userId = req.session.userId;
-        const acao = `Atualizou agendamento ${id} para ${date} ${time}`;
-        db.run("INSERT INTO logs (user_id, acao) VALUES (?, ?)", [userId, acao], err2 => {
-            if (err2) console.error("Erro ao gravar log:", err2);
-        });
-        res.json({ success: true });
-    });
-});
-
-// Excluir agendamento
-app.post('/admin/events/delete', checkAuth, (req, res) => {
-    const { id } = req.body;
-    if (!id) return res.status(400).json({ error: 'ID inválido' });
-    db.run("DELETE FROM agendamentos WHERE id = ?", [id], function (err) {
-        if (err) return res.status(500).json({ error: err.message });
-        // Log de exclusão
-        const userId = req.session.userId;
-        const acao = `Excluiu agendamento ${id}`;
-        db.run("INSERT INTO logs (user_id, acao) VALUES (?, ?)", [userId, acao], err2 => {
-            if (err2) console.error("Erro ao gravar log:", err2);
-        });
-        res.json({ success: true });
-    });
-});
-
-// Logout do administrador
-app.get('/logout', (req, res) => {
-    req.session.destroy(() => {
-        res.redirect('/login');
-    });
-});
-
-// Inicia o servidor
+const PORT = 4000;
 app.listen(PORT, () => {
-    console.log(`Servidor rodando na porta ${PORT}`);
+    console.log(`> Servidor rodando em http://localhost:${PORT}`);
 });

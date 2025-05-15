@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Agendamento – <%= school.name %>
+    </title>
+    <link rel="stylesheet" href="/css/style.css">
+
+    <!-- estilos específicos: notificações e modal -->
+    <style>
+        /* notificações */
+        .notification {
+            padding: 10px 15px;
+            border-radius: 4px;
+            margin: 20px auto;
+            max-width: 400px;
+            font-family: 'Amatic SC', cursive;
+            text-align: center;
+        }
+
+        .notification.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .notification.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .notification.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* modal */
+        .modal-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: #fff8e1;
+            padding: 20px;
+            border-radius: 8px;
+            border: 3px dashed #d84315;
+            text-align: center;
+            max-width: 320px;
+        }
+
+        .modal p {
+            margin-bottom: 15px;
+            font-family: 'Amatic SC', cursive;
+            font-size: 1.2em;
+        }
+
+        .modal button {
+            margin: 5px;
+            padding: 8px 12px;
+            font-family: 'Amatic SC', cursive;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .modal .reagendar {
+            background: #d84315;
+            color: #fff;
+        }
+
+        .modal .cancelar {
+            background: #fff;
+            color: #d84315;
+            border: 2px solid #d84315;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- bandeirinhas -->
+    <div class="bandeirinhas-top">
+        <% for(let i=0; i < 10; i++) { %>
+            <div class="flag"></div>
+            <% } %>
+    </div>
+
+    <!-- cabeçalho com fogueira -->
+    <header>
+        <span class="fire">🔥</span>
+        <h1>Agendar Festa Junina: <em>
+                <%= school.name %>
+            </em></h1>
+    </header>
+
+    <!-- modal de agendamento existente -->
+    <% if (booking) { %>
+        <div id="modal-bg" class="modal-bg">
+            <div class="modal">
+                <p>Você já tem um agendamento para esta escola em <strong>
+                        <%= booking.data_festa %>
+                    </strong>.</p>
+                <button id="reagendar-btn" class="reagendar">Reagendar</button>
+                <button id="cancelar-btn" class="cancelar">Cancelar</button>
+            </div>
+        </div>
+        <% } %>
+
+            <!-- notificações de sucesso/erro/aviso -->
+            <div id="alert" class="notification hidden"></div>
+
+            <!-- formulário -->
+            <form id="form-agenda" action="/agendamento/<%= school.id %>" method="POST" class="form-agenda">
+                <label for="nome">Nome completo:</label>
+                <input type="text" id="nome" name="nome" required>
+
+                <label for="cargo">Cargo na escola:</label>
+                <input type="text" id="cargo" name="cargo" required>
+
+                <label for="data">Data da festa:</label>
+                <input type="date" id="data" name="data" required min="<%= minDate %>">
+
+                <button type="submit">Enviar</button>
+            </form>
+
+            <!-- scripts: modal, notificações e checagem de data -->
+            <script>
+                (function () {
+                    const params = new URLSearchParams(window.location.search);
+                    const alertDiv = document.getElementById('alert');
+
+                    // 1) Notificações via query string
+                    if (params.has('success')) {
+                        alertDiv.textContent = '🎉 Agendamento salvo com sucesso!';
+                        alertDiv.classList.remove('hidden', 'error', 'warning');
+                        alertDiv.classList.add('success');
+                    }
+                    else if (params.has('error')) {
+                        alertDiv.textContent = '❌ Ocorreu um erro ao salvar. Tente novamente.';
+                        alertDiv.classList.remove('hidden', 'success', 'warning');
+                        alertDiv.classList.add('error');
+                    }
+                    else if (params.has('warning')) {
+                        alertDiv.textContent = '⚠️ ' + params.get('warning');
+                        alertDiv.classList.remove('hidden', 'success', 'error');
+                        alertDiv.classList.add('warning');
+                    }
+
+                    // 2) Modal de agendamento existente
+                    const modalBg = document.getElementById('modal-bg');
+                    if (modalBg) {
+                        const btnReagendar = document.getElementById('reagendar-btn');
+                        const btnCancelar = document.getElementById('cancelar-btn');
+                        btnReagendar.addEventListener('click', () => {
+                            modalBg.style.display = 'none';
+                        });
+                        btnCancelar.addEventListener('click', () => {
+                            window.location.href = '/';
+                        });
+                    }
+
+                    // 3) Checagem de datas “cheias”
+                    const dateInput = document.getElementById('data');
+                    dateInput.addEventListener('change', () => {
+                        if (unavailable.includes(dateInput.value)) {
+                            alert('⚠️ Data não disponível. Escolha outra.');
+                            dateInput.value = '';
+                        }
+                    });
+                })();
+            </script>
+</body>
+
+</html>
