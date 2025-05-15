@@ -72,17 +72,20 @@ body {
 .flag3 {
   mask-image: url("/img/flag3.svg");
   -webkit-mask-image: url("/img/flag3.svg");
-  background-color: red;    /* SVG “3” ficará vermelho */
+  background-color: red; 
+  fill: red;   /* SVG “3” ficará vermelho */
 }
 .flag4 {
   mask-image: url("/img/flag4.svg");
   -webkit-mask-image: url("/img/flag4.svg");
-  background-color: blue;   /* SVG “4” ficará azul */
+  background-color: blue;
+  fill: blue;  /* SVG “4” ficará azul */
 }
 .flag5 {
   mask-image: url("/img/flag5.svg");
   -webkit-mask-image: url("/img/flag5.svg");
-  background-color: yellow; /* SVG “5” ficará amarelo */
+  background-color: yellow; 
+  fill: yellow;/* SVG “5” ficará amarelo */
 }
 
 /* animação de balanço igual antes */
