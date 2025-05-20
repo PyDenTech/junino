@@ -39,7 +39,7 @@ const schools = [
     { id: '26', name: 'NEI Zulmiro Frigoto' },
     { id: '27', name: 'NEI Nilde Maria dos Santos' },
     { id: '28', name: 'EMEB Professora Fernanda Leite' },
-    { id: '28', name: 'CAEE Viver e Conviver' }
+    { id: '29', name: 'CAEE Viver e Conviver' }
 ];
 
 // inicializa banco SQLite
